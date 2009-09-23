@@ -23,7 +23,7 @@ import org.sonar.api.web.GwtPage;
 import org.sonar.api.web.NavigationSection;
 import org.sonar.plugins.timeline.client.GwtTimeline;
 
-@NavigationSection({NavigationSection.PROJECT})
+@NavigationSection({NavigationSection.RESOURCE})
 public class GwtTimelinePage extends GwtPage {
 
   public String getGwtId() {

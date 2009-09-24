@@ -52,6 +52,7 @@ import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.ListBox;
 import com.google.gwt.user.client.ui.SimplePanel;
 import com.google.gwt.user.client.ui.VerticalPanel;
+import com.google.gwt.user.client.ui.Widget;
 import com.google.gwt.visualization.client.VisualizationUtils;
 import com.google.gwt.visualization.client.visualizations.AnnotatedTimeLine;
 import com.google.gwt.visualization.client.visualizations.AnnotatedTimeLine.Options;
@@ -177,10 +178,12 @@ public class GwtTimeline extends AbstractPage {
         public void onResponse(DataTable response, JavaScriptObject jsonRawResponse) {
           Element content = DOM.getElementById("content");
           String height = properties.get(GwtTimeline.HEIGHT_PROP, GwtTimeline.DEFAULT_HEIGHT);
-          AnnotatedTimeLine timeline = new AnnotatedTimeLine(response.getTable(), createOptions(), new Integer(content.getClientWidth()) + "px", height + "px");
+          Widget toRender = response.getTable().getNumberOfRows() > 0 ? 
+              new AnnotatedTimeLine(response.getTable(), createOptions(), new Integer(content.getClientWidth()) + "px", height + "px") :
+                new HTML("<h3>No data for timeline</h3>");
           loading.removeFromParent();
           lockMetricsList(false);
-          tlPanel.add(timeline);
+          tlPanel.add(toRender);
         }
   
         @Override

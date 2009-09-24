@@ -41,10 +41,9 @@ class Api::RubyTimelineWebServiceController < Api::GwpResourcesController
     else
       measures = get_measures(metrics, snapshots)
     end
-    
-    snapshots_measures_by_resource = {}
+ 
+    snapshots_measures = {}
 
-    # ---------- SORT SNAPSHOTS
     if not measures.empty?  
       measures_by_sid = {}
       measures.each do |measure|
@@ -52,7 +51,6 @@ class Api::RubyTimelineWebServiceController < Api::GwpResourcesController
         measures_by_sid[measure.snapshot_id]<<measure
       end
 
-      snapshots_measures = {}
       snapshots.each do |snapshot|
         measures_by_metrics = {}
         measures = measures_by_sid[snapshot.id] || []
@@ -64,7 +62,7 @@ class Api::RubyTimelineWebServiceController < Api::GwpResourcesController
 
     end
     # ---------- FORMAT RESPONSE
-    rest_render({ :metrics => metrics, :snapshots_measures => snapshots_measures, :params => params})
+    rest_render({:metrics => metrics, :snapshots_measures => snapshots_measures, :params => params})
   end
   
   def select_columns_for_measures

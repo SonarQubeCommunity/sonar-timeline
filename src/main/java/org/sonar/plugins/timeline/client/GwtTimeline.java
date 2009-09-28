@@ -178,8 +178,9 @@ public class GwtTimeline extends AbstractPage {
         public void onResponse(DataTable response, JavaScriptObject jsonRawResponse) {
           Element content = DOM.getElementById("content");
           String height = properties.get(GwtTimeline.HEIGHT_PROP, GwtTimeline.DEFAULT_HEIGHT);
+          String width = content.getClientWidth() > 0 ? new Integer(content.getClientWidth()).toString() : "800";
           Widget toRender = response.getTable().getNumberOfRows() > 0 ? 
-              new AnnotatedTimeLine(response.getTable(), createOptions(), new Integer(content.getClientWidth()) + "px", height + "px") :
+              new AnnotatedTimeLine(response.getTable(), createOptions(), width + "px", height + "px") :
                 new HTML("<h3>No data for timeline</h3>");
           loading.removeFromParent();
           lockMetricsList(false);
@@ -271,7 +272,7 @@ public class GwtTimeline extends AbstractPage {
   private String getNumberFormat(Metric metric) {
     return metric.getType().equals(ValueType.PERCENT) ? "0.0" : "0.##";
   }
-  
+
   private native JavaScriptObject getNumberFormats() /*-{
     return this.numberFormats;
   }-*/;

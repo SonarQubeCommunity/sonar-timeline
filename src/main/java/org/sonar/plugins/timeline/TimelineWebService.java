@@ -22,7 +22,7 @@ package org.sonar.plugins.timeline;
 import org.sonar.api.web.AbstractRubyTemplate;
 import org.sonar.api.web.RubyRailsWebservice;
 
-public class RubyTimelineWebService extends AbstractRubyTemplate implements RubyRailsWebservice {
+public class TimelineWebService extends AbstractRubyTemplate implements RubyRailsWebservice {
 
   @Override
   public String getTemplatePath() {
@@ -30,7 +30,7 @@ public class RubyTimelineWebService extends AbstractRubyTemplate implements Ruby
   }
 
   public String getId() {
-    return "RubyTimelineWebService";
+    return "TimelineWebService";
   }
 
 }

@@ -59,6 +59,7 @@ import com.google.gwt.visualization.client.visualizations.AnnotatedTimeLine.Opti
 import com.google.gwt.visualization.client.visualizations.AnnotatedTimeLine.ScaleType;
 
 public class GwtTimeline extends AbstractPage {
+  
   public static final String GWT_ID = "org.sonar.plugins.timeline.GwtTimeline";
   public static final String DEFAULT_HEIGHT = "480";
   public static final String HEIGHT_PROP = "sonar.timeline.height";
@@ -103,6 +104,7 @@ public class GwtTimeline extends AbstractPage {
       }
       
       private void loadListBox(ListBox metricsLb, Metric selected) {
+        metricsLb.setStyleName("small");
         metricsLb.addItem("<none>", "");
         int index = 1;
         for (Metric metric : metrics) {
@@ -178,7 +180,7 @@ public class GwtTimeline extends AbstractPage {
         public void onResponse(DataTable response, JavaScriptObject jsonRawResponse) {
           Element content = DOM.getElementById("content");
           String height = properties.get(GwtTimeline.HEIGHT_PROP, GwtTimeline.DEFAULT_HEIGHT);
-          String width = content.getClientWidth() > 0 ? new Integer(content.getClientWidth()).toString() : "800";
+          String width = content.getClientWidth() > 0 ? Integer.toString(content.getClientWidth()) : "800";
           Widget toRender = response.getTable().getNumberOfRows() > 0 ? 
               new AnnotatedTimeLine(response.getTable(), createOptions(), width + "px", height + "px") :
                 new HTML("<h3>No data for timeline</h3>");

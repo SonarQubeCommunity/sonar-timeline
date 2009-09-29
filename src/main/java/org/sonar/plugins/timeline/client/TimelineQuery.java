@@ -47,7 +47,7 @@ public final class TimelineQuery extends AbstractResourceQuery<DataTable> {
     return this;
   }
 
-  private final String getMetricsWSRequest(List<Metric> metrics) {
+  private String getMetricsWSRequest(List<Metric> metrics) {
     StringBuilder metricsDelimByComma = new StringBuilder(64);
     for (Metric metric : metrics) {
       metricsDelimByComma.append(metric.getKey()).append(",");
@@ -57,7 +57,7 @@ public final class TimelineQuery extends AbstractResourceQuery<DataTable> {
 
   @Override
   public String toString() {
-    return Utils.getServerApiUrl() + "/plugins/RubyTimelineWebService?out=json&resource=" + getResourceKey() + "&metrics=" + metrics;
+    return Utils.getServerApiUrl() + "/plugins/TimelineWebService?out=json&resource=" + getResourceKey() + "&metrics=" + metrics;
   }
 
   @Override

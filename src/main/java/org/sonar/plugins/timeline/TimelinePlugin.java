@@ -38,7 +38,7 @@ import org.sonar.plugins.timeline.client.GwtTimeline;
 public class TimelinePlugin implements Plugin {
 
   public String getKey() {
-    return "gwt-timeline";
+    return "timeline";
   }
 
   public String getName() {
@@ -46,13 +46,13 @@ public class TimelinePlugin implements Plugin {
   }
 
   public String getDescription() {
-    return "GWT metrics history timeline plugin";
+    return "Advanced time machine chart";
   }
 
   public List<Class<? extends Extension>> getExtensions() {
     List<Class<? extends Extension>> extensions = new ArrayList<Class<? extends Extension>>();
     extensions.add(GwtTimelinePage.class);
-    extensions.add(RubyTimelineWebService.class);
+    extensions.add(TimelineWebService.class);
     return extensions;
   }
 

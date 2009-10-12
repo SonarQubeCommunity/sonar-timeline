@@ -183,7 +183,7 @@ public class GwtTimeline extends AbstractPage {
           String width = content.getClientWidth() > 0 ? Integer.toString(content.getClientWidth()) : "800";
           Widget toRender = response.getTable().getNumberOfRows() > 0 ? 
               new AnnotatedTimeLine(response.getTable(), createOptions(), width + "px", height + "px") :
-                new HTML("<h3>No data for timeline</h3>");
+                new HTML("<p>No data</p>");
           loading.removeFromParent();
           lockMetricsList(false);
           tlPanel.add(toRender);
@@ -229,7 +229,7 @@ public class GwtTimeline extends AbstractPage {
   private void render() {
     HorizontalPanel hPanel = new HorizontalPanel();
     Label label = new Label("Metrics:");
-    label.setStyleName("comments");
+    label.setStyleName("note");
     
     hPanel.add(label);
     for (ListBox metricLb : metricsListBoxes) {

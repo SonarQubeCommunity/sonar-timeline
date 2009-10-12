@@ -44,7 +44,28 @@
       </roles>
       <timezone>+1</timezone>
     </developer>
+    <developer>
+      <id>simon.brandhof</id>
+      <name>Simon Brandhof</name>
+      <email>simon.brandhof@sonarsource.com</email>
+      <timezone>+1</timezone>
+    </developer>   
   </developers>
+
+  <repositories>
+    <repository>
+      <!-- for gwt-incubator july-14-2009 -->
+      <id>sonar</id>
+      <name>Sonar</name>
+      <url>http://repository.sonarsource.org/content/repositories/sonar</url>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+    </repository>
+  </repositories>
 
   <dependencies>
     <dependency>
@@ -63,9 +84,8 @@
       <artifactId>gwt-visualization</artifactId>
       <version>1.0.2</version>
     </dependency>
-
     <dependency>
-      <groupId>org.codehaus.sonar</groupId>
+      <groupId>com.google.gwt</groupId>
       <artifactId>gwt-incubator</artifactId>
       <version>july-14-2009</version>
       <scope>provided</scope>
@@ -96,7 +116,6 @@
       </plugin>
 
       <plugin>
-        <!-- complete META-INF/MANIFEST.MF -->
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>
         <version>2.2</version>
@@ -108,9 +127,7 @@
           </archive>
         </configuration>
       </plugin>
-
       <plugin>
-        <!-- Java 5 -->
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
         <configuration>

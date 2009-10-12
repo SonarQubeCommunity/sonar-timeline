@@ -21,9 +21,11 @@ package org.sonar.plugins.timeline;
 
 import org.sonar.api.web.GwtPage;
 import org.sonar.api.web.NavigationSection;
+import org.sonar.api.web.UserRole;
 import org.sonar.plugins.timeline.client.GwtTimeline;
 
 @NavigationSection({NavigationSection.RESOURCE})
+@UserRole(UserRole.VIEWER)
 public class GwtTimelinePage extends GwtPage {
 
   public String getGwtId() {

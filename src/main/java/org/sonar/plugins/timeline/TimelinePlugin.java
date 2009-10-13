@@ -30,10 +30,10 @@ import org.sonar.plugins.timeline.client.GwtTimeline;
 
 @Properties({
   @Property(
-      key = GwtTimeline.HEIGHT_PROP,
-      name = "Timeline height",
-      description = "The timeline height in pixels",
-      defaultValue = GwtTimeline.DEFAULT_HEIGHT)
+      key = GwtTimeline.DEFAULT_METRICS_KEY,
+      name = "Default selected metrics",
+      description = "Comma-separated list of metric keys. Maximum of 3 values.",
+      defaultValue = GwtTimeline.DEFAULT_METRICS_VALUE)
 })
 public class TimelinePlugin implements Plugin {
 

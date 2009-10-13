@@ -18,7 +18,9 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02
 #
 class Api::TimelineWebServiceController < Api::GwpResourcesController
-
+  MAX_IN_ELEMENTS=990
+  EMPTY_HASH={}
+  
   private
   
   def rest_call
@@ -28,23 +30,16 @@ class Api::TimelineWebServiceController < Api::GwpResourcesController
       snapshots=Snapshot.find(:all, :conditions => {:project_id => @resource.id, :status => Snapshot::STATUS_PROCESSED}, :include=> 'events', :order => 'created_at')
     end
 
-    # temporary fix for SONAR-1098
-    if snapshots.length > 999
-      loops_count = snapshots.length / 999
-      loops_count = loops_count + 1 if snapshots.length % 999 > 0
-      measures = []
-      loops_count.times do |i|
-        start_index = i * 999
-        end_index = (i+1) * 999
-        measures.concat(get_measures(metrics, snapshots[start_index...end_index]))
-      end
-    else
-      measures = get_measures(metrics, snapshots)
+    # Oracle limitation : no more than 1000 elements in IN clause
+    if snapshots.length > MAX_IN_ELEMENTS
+      size=snapshots.size
+      snapshots=snapshots[size-MAX_IN_ELEMENTS .. size-1]
     end
- 
+      
+    measures = find_measures(metrics, snapshots)
+    
     snapshots_measures = {}
-
-    if not measures.empty?  
+    if !measures.empty?  
       measures_by_sid = {}
       measures.each do |measure|
         measures_by_sid[measure.snapshot_id]||=[]
@@ -57,23 +52,20 @@ class Api::TimelineWebServiceController < Api::GwpResourcesController
         measures.each do |measure|
           measures_by_metrics[measure.metric_id] = measure
         end
-        snapshots_measures[snapshot] = measures_by_metrics if not measures.empty?
+        snapshots_measures[snapshot] = measures_by_metrics if !measures.empty?
       end
 
     end
-    # ---------- FORMAT RESPONSE
     rest_render({:metrics => metrics, :snapshots_measures => snapshots_measures, :params => params})
   end
   
-  def select_columns_for_measures
-    'project_measures.id,project_measures.value,project_measures.metric_id,project_measures.snapshot_id'
-  end
   
-  def get_measures(metrics, snapshots)
+  
+  def find_measures(metrics, snapshots)
     ProjectMeasure.find(:all,
-          :select => select_columns_for_measures,
-          :conditions => ['rules_category_id IS NULL and rule_id IS NULL and rule_priority IS NULL and metric_id IN (?) and snapshot_id IN (?)',
-            metrics.select{|m| m.id}, snapshots.map{|s| s.id}], :order => "project_measures.value")
+          :select => 'project_measures.id,project_measures.value,project_measures.metric_id,project_measures.snapshot_id',
+          :conditions => ['rules_category_id IS NULL AND rule_id IS NULL AND rule_priority IS NULL AND metric_id IN (?) AND snapshot_id IN (?)',
+            metrics.select{|m| m.id}, snapshots.map{|s| s.id}])
   end
   
   def fill_gwp_data_table(objects, data_table)
@@ -123,4 +115,15 @@ class Api::TimelineWebServiceController < Api::GwpResourcesController
     end
   end
 
+  def add_row_value(row, value, formatted_value = nil)
+    if value
+      if formatted_value
+        row[:c] << {:v => value, :f => formatted_value}
+      else
+        row[:c] << {:v => value}
+      end
+    else
+      row[:c] << EMPTY_HASH
+    end
+  end
 end

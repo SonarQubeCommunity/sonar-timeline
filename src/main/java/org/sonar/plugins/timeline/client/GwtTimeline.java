@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import com.google.gwt.user.client.Window;
 import org.sonar.api.web.gwt.client.AbstractPage;
 import org.sonar.api.web.gwt.client.ResourceDictionary;
 import org.sonar.api.web.gwt.client.webservices.BaseQueryCallback;
@@ -61,11 +62,14 @@ import com.google.gwt.visualization.client.visualizations.AnnotatedTimeLine.Scal
 public class GwtTimeline extends AbstractPage {
   
   public static final String GWT_ID = "org.sonar.plugins.timeline.GwtTimeline";
-  public static final String DEFAULT_HEIGHT = "480";
-  public static final String HEIGHT_PROP = "sonar.timeline.height";
-  
+
+  public static final int DEFAULT_HEIGHT = 480;
+
+  public static final String DEFAULT_METRICS_KEY = "sonar.timeline.defaultmetrics";
+  public static final String DEFAULT_METRICS_VALUE = "ncloc,violations_density,coverage";
+
   private SortedSet<WSMetrics.Metric> metrics = null;
-  private Properties properties = null;
+  private String[] defaultMetrics = null;
   private ListBox metricsListBox1 = new ListBox();
   private ListBox metricsListBox2 = new ListBox();
   private ListBox metricsListBox3 = new ListBox();
@@ -75,21 +79,28 @@ public class GwtTimeline extends AbstractPage {
   public void onModuleLoad() {
     getRootPanel().add(new LoadingLabel());
     
-    PropertiesQuery propsQ = new PropertiesQuery();
-    BaseQueryCallback<Properties> propsCb = new BaseQueryCallback<Properties>() {
-      public void onResponse(Properties response, JavaScriptObject jsonRawResponse) {
-        properties = response;
+    PropertiesQuery propertiesQuery = new PropertiesQuery(DEFAULT_METRICS_KEY);
+    BaseQueryCallback<Properties> propertiesCallback = new BaseQueryCallback<Properties>() {
+      public void onResponse(Properties properties, JavaScriptObject jsonRawResponse) {
+        String value = properties.get(DEFAULT_METRICS_KEY, DEFAULT_METRICS_VALUE);
+        defaultMetrics = value.split(",");
+      }
+
+      @Override
+      public void onError(int i, String s) {
+        defaultMetrics = DEFAULT_METRICS_VALUE.split(",");
       }
     };
-    MetricsQuery metricsQ = MetricsQuery.get();
-    metricsQ.excludeTypes(ValueType.BOOL, ValueType.DATA, ValueType.DISTRIB, ValueType.STRING, ValueType.LEVEL);
-    QueryCallBack<MetricsList> metricsListCb = new BaseQueryCallback<MetricsList>() {
+
+    MetricsQuery metricsQuery = MetricsQuery.get();
+    metricsQuery.excludeTypes(ValueType.BOOL, ValueType.DATA, ValueType.DISTRIB, ValueType.STRING, ValueType.LEVEL);
+    QueryCallBack<MetricsList> metricsCallback = new BaseQueryCallback<MetricsList>() {
       public void onResponse(MetricsList response, JavaScriptObject jsonRawResponse) {
         metrics = orderMetrics(response.getMetrics());
         metricsListBoxes = Arrays.asList(metricsListBox1, metricsListBox2, metricsListBox3);
-        loadListBox(metricsListBox1, WSMetrics.NCLOC);
-        loadListBox(metricsListBox2, WSMetrics.COVERAGE);
-        loadListBox(metricsListBox3, WSMetrics.VIOLATIONS_DENSITY);
+        loadListBox(metricsListBox1, defaultMetrics.length>0 ? defaultMetrics[0] : null);
+        loadListBox(metricsListBox2, defaultMetrics.length>1 ? defaultMetrics[1] : null);
+        loadListBox(metricsListBox3, defaultMetrics.length>2? defaultMetrics[2] : null);
 
         ChangeHandler metricSelection = new ChangeHandler() {
           public void onChange(ChangeEvent event) {
@@ -103,13 +114,13 @@ public class GwtTimeline extends AbstractPage {
         }
       }
       
-      private void loadListBox(ListBox metricsLb, Metric selected) {
+      private void loadListBox(ListBox metricsLb, String selectedKey) {
         metricsLb.setStyleName("small");
         metricsLb.addItem("<none>", "");
         int index = 1;
         for (Metric metric : metrics) {
           metricsLb.addItem(metric.getName(), metric.getKey());
-          if (metric.equals(selected)) {
+          if (selectedKey!=null && metric.getKey().equals(selectedKey.trim())) {
             metricsLb.setSelectedIndex(index);
           }
           index++;
@@ -140,9 +151,9 @@ public class GwtTimeline extends AbstractPage {
       }
     };
     // updating the WSMetrics dictonnary on metrics list info returned response
-    metricsListCb = WSMetrics.getUpdateMetricsFromServer(metricsListCb);
+    //metricsCallback = WSMetrics.getUpdateMetricsFromServer(metricsCallback);
 
-    BaseQueryCallback<VoidResponse> queriesCb = new BaseQueryCallback<VoidResponse>() {
+    BaseQueryCallback<VoidResponse> queriesCallback = new BaseQueryCallback<VoidResponse>() {
       public void onResponse(VoidResponse response, JavaScriptObject jsonRawResponse) {
         Runnable onLoadCallback = new Runnable() {
           public void run() {
@@ -153,8 +164,8 @@ public class GwtTimeline extends AbstractPage {
         VisualizationUtils.loadVisualizationApi(onLoadCallback, AnnotatedTimeLine.PACKAGE);
       }
     };
-    SequentialQueries queries = SequentialQueries.get().add(propsQ, propsCb).add(metricsQ, metricsListCb);
-    queries.execute(queriesCb);
+    SequentialQueries queries = SequentialQueries.get().add(propertiesQuery, propertiesCallback).add(metricsQuery, metricsCallback);
+    queries.execute(queriesCallback);
   }
   
   private SortedSet<Metric> orderMetrics(List<Metric> metrics) {
@@ -179,10 +190,9 @@ public class GwtTimeline extends AbstractPage {
         
         public void onResponse(DataTable response, JavaScriptObject jsonRawResponse) {
           Element content = DOM.getElementById("content");
-          String height = properties.get(GwtTimeline.HEIGHT_PROP, GwtTimeline.DEFAULT_HEIGHT);
-          String width = content.getClientWidth() > 0 ? Integer.toString(content.getClientWidth()) : "800";
+          int width = content.getClientWidth() > 0 ? content.getClientWidth() : 800;
           Widget toRender = response.getTable().getNumberOfRows() > 0 ? 
-              new AnnotatedTimeLine(response.getTable(), createOptions(), width + "px", height + "px") :
+              new AnnotatedTimeLine(response.getTable(), createOptions(), width + "px", GwtTimeline.DEFAULT_HEIGHT + "px") :
                 new HTML("<p>No data</p>");
           loading.removeFromParent();
           lockMetricsList(false);

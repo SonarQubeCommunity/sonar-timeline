@@ -26,7 +26,6 @@ import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import com.google.gwt.user.client.Window;
 import org.sonar.api.web.gwt.client.AbstractPage;
 import org.sonar.api.web.gwt.client.ResourceDictionary;
 import org.sonar.api.web.gwt.client.webservices.BaseQueryCallback;
@@ -60,7 +59,7 @@ import com.google.gwt.visualization.client.visualizations.AnnotatedTimeLine.Opti
 import com.google.gwt.visualization.client.visualizations.AnnotatedTimeLine.ScaleType;
 
 public class GwtTimeline extends AbstractPage {
-  
+
   public static final String GWT_ID = "org.sonar.plugins.timeline.GwtTimeline";
 
   public static final int DEFAULT_HEIGHT = 480;
@@ -78,7 +77,7 @@ public class GwtTimeline extends AbstractPage {
 
   public void onModuleLoad() {
     getRootPanel().add(new LoadingLabel());
-    
+
     PropertiesQuery propertiesQuery = new PropertiesQuery(DEFAULT_METRICS_KEY);
     BaseQueryCallback<Properties> propertiesCallback = new BaseQueryCallback<Properties>() {
       public void onResponse(Properties properties, JavaScriptObject jsonRawResponse) {
@@ -113,7 +112,7 @@ public class GwtTimeline extends AbstractPage {
           metricLb.addChangeHandler(metricSelection);
         }
       }
-      
+
       private void loadListBox(ListBox metricsLb, String selectedKey) {
         metricsLb.setStyleName("small");
         metricsLb.addItem("<none>", "");
@@ -126,7 +125,7 @@ public class GwtTimeline extends AbstractPage {
           index++;
         }
       }
-      
+
       private Boolean allMetricsUnSelected() {
         for (ListBox metricLb : metricsListBoxes) {
           if (getSelectedMetric(metricLb) != null) {
@@ -135,7 +134,7 @@ public class GwtTimeline extends AbstractPage {
         }
         return true;
       }
-      
+
       private boolean sameMetricsSelection() {
         List<Metric> selected = new ArrayList<Metric>();
         for (ListBox metricLb : metricsListBoxes) {
@@ -167,7 +166,7 @@ public class GwtTimeline extends AbstractPage {
     SequentialQueries queries = SequentialQueries.get().add(propertiesQuery, propertiesCallback).add(metricsQuery, metricsCallback);
     queries.execute(queriesCallback);
   }
-  
+
   private SortedSet<Metric> orderMetrics(List<Metric> metrics) {
     TreeSet<Metric> ordered = new TreeSet<Metric>(new Comparator<Metric>() {
       public int compare(Metric o1, Metric o2) {
@@ -177,7 +176,7 @@ public class GwtTimeline extends AbstractPage {
     ordered.addAll(metrics);
     return ordered;
   }
-  
+
   private void loadTimeLine() {
     lockMetricsList(true);
     tlPanel.clear();
@@ -187,7 +186,6 @@ public class GwtTimeline extends AbstractPage {
     TimelineQuery.get(ResourceDictionary.getResourceKey())
       .setMetrics(getSelectedMetrics())
       .execute(new BaseQueryCallback<DataTable>(loading) {
-        
         public void onResponse(DataTable response, JavaScriptObject jsonRawResponse) {
           Element content = DOM.getElementById("content");
           int width = content.getClientWidth() > 0 ? content.getClientWidth() : 800;
@@ -198,13 +196,13 @@ public class GwtTimeline extends AbstractPage {
           lockMetricsList(false);
           tlPanel.add(toRender);
         }
-  
+
         @Override
         public void onError(int errorCode, String errorMessage) {
           lockMetricsList(false);
           super.onError(errorCode, errorMessage);
         }
-  
+
         @Override
         public void onTimeout() {
           lockMetricsList(false);
@@ -212,13 +210,13 @@ public class GwtTimeline extends AbstractPage {
         }
       });
   }
-  
+
   private void lockMetricsList(boolean locked) {
     for ( ListBox metricLb : metricsListBoxes) {
       metricLb.setEnabled(!locked);
     }
   }
-  
+
   private List<Metric> getSelectedMetrics() {
     List<Metric> metrics = new ArrayList<Metric>();
     for (ListBox metricLb : metricsListBoxes) {
@@ -230,17 +228,17 @@ public class GwtTimeline extends AbstractPage {
     }
     return metrics;
   }
-  
+
   private Metric getSelectedMetric(ListBox metricsLb) {
     String selected = metricsLb.getValue(metricsLb.getSelectedIndex());
     return selected.length() > 0 ? WSMetrics.get(selected) : null;
   }
-  
+
   private void render() {
     HorizontalPanel hPanel = new HorizontalPanel();
     Label label = new Label("Metrics:");
     label.setStyleName("note");
-    
+
     hPanel.add(label);
     for (ListBox metricLb : metricsListBoxes) {
       hPanel.add(new HTML("&nbsp;"));
@@ -253,7 +251,7 @@ public class GwtTimeline extends AbstractPage {
     vPanel.add(tlPanel);
     displayView(vPanel);
   }
-  
+
   private Options createOptions() {
     Options options = Options.create();
     options.setAllowHtml(true);
@@ -263,7 +261,7 @@ public class GwtTimeline extends AbstractPage {
     options.setOption("fill", 15);
     options.setOption("thickness", 2);
     options.setScaleType(ScaleType.ALLFIXED);
-    
+
     resetNumberFormats();
     int selectedCols = 0;
     for (ListBox metricLb : metricsListBoxes) {
@@ -280,7 +278,7 @@ public class GwtTimeline extends AbstractPage {
     options.setScaleColumns(scaledCols);
     return options;
   }
-  
+
   private String getNumberFormat(Metric metric) {
     return metric.getType().equals(ValueType.PERCENT) ? "0.0" : "0.##";
   }
@@ -288,11 +286,11 @@ public class GwtTimeline extends AbstractPage {
   private native JavaScriptObject getNumberFormats() /*-{
     return this.numberFormats;
   }-*/;
-  
+
   private native void resetNumberFormats() /*-{
     this.numberFormats = {};
   }-*/;
-  
+
   private native void setNumberFormats(int key, String numberFormat) /*-{
     this.numberFormats[key] = numberFormat;
   }-*/;

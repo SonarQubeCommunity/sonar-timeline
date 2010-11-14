@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.codehaus.sonar-plugins</groupId>
     <artifactId>parent</artifactId>
-    <version>6</version>
+    <version>7</version>
     <relativePath>../parent</relativePath>
   </parent>
 
@@ -14,7 +14,7 @@
   <version>1.0-SNAPSHOT</version>
 
   <name>Sonar Timeline plugin</name>
-  <description>Advanced time machine chart</description>
+  <description>Advanced time machine chart.</description>
   <url>http://docs.codehaus.org/display/SONAR/Timeline+Plugin</url>
   <organization>
     <name>SonarSource</name>
@@ -43,7 +43,7 @@
       <name>Simon Brandhof</name>
       <email>simon.brandhof@sonarsource.com</email>
       <timezone>+1</timezone>
-    </developer>   
+    </developer>
   </developers>
 
   <scm>
@@ -72,9 +72,7 @@
   </repositories>
 
   <properties>
-    <sonar.version>1.11</sonar.version>
-    <!-- TODO sonar-packaging-maven-plugin because of SONAR-1879 -->
-    <sonar.pluginKey>timeline</sonar.pluginKey>
+    <sonar.version>2.1</sonar.version>
     <sonar.pluginName>Timeline</sonar.pluginName>
     <sonar.pluginClass>org.sonar.plugins.timeline.TimelinePlugin</sonar.pluginClass>
   </properties>
@@ -111,7 +109,6 @@
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>gwt-maven-plugin</artifactId>
-        <version>1.2</version>
         <executions>
           <execution>
             <configuration>

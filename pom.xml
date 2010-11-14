@@ -11,7 +11,7 @@
 
   <artifactId>sonar-timeline-plugin</artifactId>
   <packaging>sonar-plugin</packaging>
-  <version>1.0-SNAPSHOT</version>
+  <version>1.0</version>
 
   <name>Sonar Timeline plugin</name>
   <description>Advanced time machine chart.</description>
@@ -47,9 +47,9 @@
   </developers>
 
   <scm>
-    <connection>scm:svn:http://svn.codehaus.org/sonar-plugins/trunk/timeline</connection>
-    <developerConnection>scm:svn:https://svn.codehaus.org/sonar-plugins/trunk/timeline</developerConnection>
-    <url>http://svn.sonar-plugins.codehaus.org</url>
+    <connection>scm:svn:http://svn.codehaus.org/sonar-plugins/tags/sonar-timeline-plugin-1.0</connection>
+    <developerConnection>scm:svn:https://svn.codehaus.org/sonar-plugins/tags/sonar-timeline-plugin-1.0</developerConnection>
+    <url>scm:svn:https://svn.codehaus.org/sonar-plugins/tags/sonar-timeline-plugin-1.0</url>
   </scm>
   <issueManagement>
     <system>JIRA</system>

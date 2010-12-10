@@ -72,7 +72,7 @@
   </repositories>
 
   <properties>
-    <sonar.version>2.1</sonar.version>
+    <sonar.version>2.5-SNAPSHOT</sonar.version>
     <sonar.pluginName>Timeline</sonar.pluginName>
     <sonar.pluginClass>org.sonar.plugins.timeline.TimelinePlugin</sonar.pluginClass>
   </properties>
@@ -81,6 +81,13 @@
     <dependency>
       <groupId>org.codehaus.sonar</groupId>
       <artifactId>sonar-plugin-api</artifactId>
+      <version>${sonar.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <!-- GWT -->
+    <dependency>
+      <groupId>org.codehaus.sonar</groupId>
+      <artifactId>sonar-gwt-api</artifactId>
       <version>${sonar.version}</version>
       <scope>provided</scope>
     </dependency>
@@ -101,6 +108,13 @@
       <artifactId>gwt-incubator</artifactId>
       <version>july-14-2009</version>
       <scope>provided</scope>
+    </dependency>
+    <!-- unit tests -->
+    <dependency>
+      <groupId>org.codehaus.sonar</groupId>
+      <artifactId>sonar-testing-harness</artifactId>
+      <version>${sonar.version}</version>
+      <scope>test</scope>
     </dependency>
   </dependencies>
 

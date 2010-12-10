@@ -20,46 +20,29 @@
 
 package org.sonar.plugins.timeline.client;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
-import java.util.SortedSet;
-import java.util.TreeSet;
-
-import org.sonar.api.web.gwt.client.AbstractPage;
-import org.sonar.api.web.gwt.client.ResourceDictionary;
-import org.sonar.api.web.gwt.client.webservices.BaseQueryCallback;
-import org.sonar.api.web.gwt.client.webservices.MetricsQuery;
-import org.sonar.api.web.gwt.client.webservices.Properties;
-import org.sonar.api.web.gwt.client.webservices.PropertiesQuery;
-import org.sonar.api.web.gwt.client.webservices.QueryCallBack;
-import org.sonar.api.web.gwt.client.webservices.SequentialQueries;
-import org.sonar.api.web.gwt.client.webservices.VoidResponse;
-import org.sonar.api.web.gwt.client.webservices.WSMetrics;
-import org.sonar.api.web.gwt.client.webservices.WSMetrics.Metric;
-import org.sonar.api.web.gwt.client.webservices.WSMetrics.MetricsList;
-import org.sonar.api.web.gwt.client.webservices.WSMetrics.Metric.ValueType;
-import org.sonar.api.web.gwt.client.widgets.LoadingLabel;
-
 import com.google.gwt.core.client.JavaScriptObject;
 import com.google.gwt.dom.client.Element;
 import com.google.gwt.event.dom.client.ChangeEvent;
 import com.google.gwt.event.dom.client.ChangeHandler;
 import com.google.gwt.user.client.DOM;
-import com.google.gwt.user.client.ui.HTML;
-import com.google.gwt.user.client.ui.HorizontalPanel;
-import com.google.gwt.user.client.ui.Label;
-import com.google.gwt.user.client.ui.ListBox;
-import com.google.gwt.user.client.ui.SimplePanel;
-import com.google.gwt.user.client.ui.VerticalPanel;
-import com.google.gwt.user.client.ui.Widget;
+import com.google.gwt.user.client.ui.*;
 import com.google.gwt.visualization.client.VisualizationUtils;
 import com.google.gwt.visualization.client.visualizations.AnnotatedTimeLine;
 import com.google.gwt.visualization.client.visualizations.AnnotatedTimeLine.Options;
 import com.google.gwt.visualization.client.visualizations.AnnotatedTimeLine.ScaleType;
+import org.sonar.api.web.gwt.client.ResourceDictionary;
+import org.sonar.api.web.gwt.client.webservices.BaseQueryCallback;
+import org.sonar.api.web.gwt.client.webservices.WSMetrics.Metric.ValueType;
+import org.sonar.api.web.gwt.client.widgets.LoadingLabel;
+import org.sonar.gwt.ui.Page;
+import org.sonar.wsclient.gwt.AbstractCallback;
+import org.sonar.wsclient.gwt.AbstractListCallback;
+import org.sonar.wsclient.gwt.Sonar;
+import org.sonar.wsclient.services.*;
 
-public class GwtTimeline extends AbstractPage {
+import java.util.*;
+
+public class GwtTimeline extends Page {
 
   public static final String GWT_ID = "org.sonar.plugins.timeline.GwtTimeline";
 
@@ -68,7 +51,7 @@ public class GwtTimeline extends AbstractPage {
   public static final String DEFAULT_METRICS_KEY = "sonar.timeline.defaultmetrics";
   public static final String DEFAULT_METRICS_VALUE = "ncloc,violations_density,coverage";
 
-  private SortedSet<WSMetrics.Metric> metrics = null;
+  private SortedSet<Metric> metrics = null;
   private String[] defaultMetrics = null;
   private ListBox metricsListBox1 = new ListBox();
   private ListBox metricsListBox2 = new ListBox();
@@ -76,31 +59,52 @@ public class GwtTimeline extends AbstractPage {
   private List<ListBox> metricsListBoxes = null;
   private SimplePanel tlPanel = null;
 
-  public void onModuleLoad() {
-    getRootPanel().add(new LoadingLabel());
+  private VerticalPanel panel;
 
-    PropertiesQuery propertiesQuery = new PropertiesQuery(DEFAULT_METRICS_KEY);
-    BaseQueryCallback<Properties> propertiesCallback = new BaseQueryCallback<Properties>() {
-      public void onResponse(Properties properties, JavaScriptObject jsonRawResponse) {
-        String value = properties.get(DEFAULT_METRICS_KEY, DEFAULT_METRICS_VALUE);
+  private Map<String, Metric> loadedMetrics = new HashMap<String, Metric>();
+
+  @Override
+  protected Widget doOnResourceLoad(Resource resource) {
+    panel = new VerticalPanel();
+    panel.add(new LoadingLabel());
+    load();
+    return panel;
+  }
+
+  private void load() {
+    Sonar.getInstance().find(PropertyQuery.createForKey(DEFAULT_METRICS_KEY), new AbstractCallback<Property>() {
+      @Override
+      protected void doOnResponse(Property result) {
+        String value = result.getValue();
         defaultMetrics = value.split(",");
+        loadMetrics();
       }
 
       @Override
-      public void onError(int i, String s) {
+      protected void doOnError(int errorCode, String errorMessage) {
         defaultMetrics = DEFAULT_METRICS_VALUE.split(",");
+        loadMetrics();
       }
-    };
+    });
+  }
 
-    MetricsQuery metricsQuery = MetricsQuery.get();
-    metricsQuery.excludeTypes(ValueType.BOOL, ValueType.DATA, ValueType.DISTRIB, ValueType.STRING, ValueType.LEVEL);
-    QueryCallBack<MetricsList> metricsCallback = new BaseQueryCallback<MetricsList>() {
-      public void onResponse(MetricsList response, JavaScriptObject jsonRawResponse) {
-        metrics = orderMetrics(response.getMetrics());
+  private void loadMetrics() {
+    final List<String> excludedTypes = Arrays.asList("BOOL", "DATA", "DISTRIB", "STRING", "LEVEL");
+
+    Sonar.getInstance().findAll(MetricQuery.all(), new AbstractListCallback<Metric>() {
+      @Override
+      protected void doOnResponse(List<Metric> result) {
+        for (Metric metric : result) {
+          if (!excludedTypes.contains(metric.getType())) {
+            loadedMetrics.put(metric.getKey(), metric);
+          }
+        }
+
+        metrics = orderMetrics(result);
         metricsListBoxes = Arrays.asList(metricsListBox1, metricsListBox2, metricsListBox3);
-        loadListBox(metricsListBox1, defaultMetrics.length>0 ? defaultMetrics[0] : null);
-        loadListBox(metricsListBox2, defaultMetrics.length>1 ? defaultMetrics[1] : null);
-        loadListBox(metricsListBox3, defaultMetrics.length>2? defaultMetrics[2] : null);
+        loadListBox(metricsListBox1, defaultMetrics.length > 0 ? defaultMetrics[0] : null);
+        loadListBox(metricsListBox2, defaultMetrics.length > 1 ? defaultMetrics[1] : null);
+        loadListBox(metricsListBox3, defaultMetrics.length > 2 ? defaultMetrics[2] : null);
 
         ChangeHandler metricSelection = new ChangeHandler() {
           public void onChange(ChangeEvent event) {
@@ -112,6 +116,8 @@ public class GwtTimeline extends AbstractPage {
         for (ListBox metricLb : metricsListBoxes) {
           metricLb.addChangeHandler(metricSelection);
         }
+
+        loadVisualizationApi();
       }
 
       private void loadListBox(ListBox metricsLb, String selectedKey) {
@@ -120,7 +126,7 @@ public class GwtTimeline extends AbstractPage {
         int index = 1;
         for (Metric metric : metrics) {
           metricsLb.addItem(metric.getName(), metric.getKey());
-          if (selectedKey!=null && metric.getKey().equals(selectedKey.trim())) {
+          if (selectedKey != null && metric.getKey().equals(selectedKey.trim())) {
             metricsLb.setSelectedIndex(index);
           }
           index++;
@@ -149,26 +155,20 @@ public class GwtTimeline extends AbstractPage {
         }
         return false;
       }
-    };
-    // updating the WSMetrics dictonnary on metrics list info returned response
-    //metricsCallback = WSMetrics.getUpdateMetricsFromServer(metricsCallback);
-
-    BaseQueryCallback<VoidResponse> queriesCallback = new BaseQueryCallback<VoidResponse>() {
-      public void onResponse(VoidResponse response, JavaScriptObject jsonRawResponse) {
-        Runnable onLoadCallback = new Runnable() {
-          public void run() {
-            render();
-            loadTimeLine();
-          }
-        };
-        VisualizationUtils.loadVisualizationApi(onLoadCallback, AnnotatedTimeLine.PACKAGE);
-      }
-    };
-    SequentialQueries queries = SequentialQueries.get().add(propertiesQuery, propertiesCallback).add(metricsQuery, metricsCallback);
-    queries.execute(queriesCallback);
+    });
   }
 
-  private SortedSet<Metric> orderMetrics(List<Metric> metrics) {
+  private void loadVisualizationApi() {
+    Runnable onLoadCallback = new Runnable() {
+      public void run() {
+        render();
+        loadTimeLine();
+      }
+    };
+    VisualizationUtils.loadVisualizationApi(onLoadCallback, AnnotatedTimeLine.PACKAGE);
+  }
+
+  private SortedSet<Metric> orderMetrics(Collection<Metric> metrics) {
     TreeSet<Metric> ordered = new TreeSet<Metric>(new Comparator<Metric>() {
       public int compare(Metric o1, Metric o2) {
         return o1.getName().compareTo(o2.getName());
@@ -185,35 +185,35 @@ public class GwtTimeline extends AbstractPage {
     tlPanel.add(loading);
 
     TimelineQuery.get(ResourceDictionary.getResourceKey())
-      .setMetrics(getSelectedMetrics())
-      .execute(new BaseQueryCallback<DataTable>(loading) {
-        public void onResponse(DataTable response, JavaScriptObject jsonRawResponse) {
-          Element content = DOM.getElementById("content");
-          int width = content.getClientWidth() > 0 ? content.getClientWidth() : 800;
-          Widget toRender = response.getTable().getNumberOfRows() > 0 ? 
-              new AnnotatedTimeLine(response.getTable(), createOptions(), width + "px", GwtTimeline.DEFAULT_HEIGHT + "px") :
+        .setMetrics(getSelectedMetrics())
+        .execute(new BaseQueryCallback<DataTable>(loading) {
+          public void onResponse(DataTable response, JavaScriptObject jsonRawResponse) {
+            Element content = DOM.getElementById("content");
+            int width = content.getClientWidth() > 0 ? content.getClientWidth() : 800;
+            Widget toRender = response.getTable().getNumberOfRows() > 0 ?
+                new AnnotatedTimeLine(response.getTable(), createOptions(), width + "px", GwtTimeline.DEFAULT_HEIGHT + "px") :
                 new HTML("<p>No data</p>");
-          loading.removeFromParent();
-          lockMetricsList(false);
-          tlPanel.add(toRender);
-        }
+            loading.removeFromParent();
+            lockMetricsList(false);
+            tlPanel.add(toRender);
+          }
 
-        @Override
-        public void onError(int errorCode, String errorMessage) {
-          lockMetricsList(false);
-          super.onError(errorCode, errorMessage);
-        }
+          @Override
+          public void onError(int errorCode, String errorMessage) {
+            lockMetricsList(false);
+            super.onError(errorCode, errorMessage);
+          }
 
-        @Override
-        public void onTimeout() {
-          lockMetricsList(false);
-          super.onTimeout();
-        }
-      });
+          @Override
+          public void onTimeout() {
+            lockMetricsList(false);
+            super.onTimeout();
+          }
+        });
   }
 
   private void lockMetricsList(boolean locked) {
-    for ( ListBox metricLb : metricsListBoxes) {
+    for (ListBox metricLb : metricsListBoxes) {
       metricLb.setEnabled(!locked);
     }
   }
@@ -232,7 +232,7 @@ public class GwtTimeline extends AbstractPage {
 
   private Metric getSelectedMetric(ListBox metricsLb) {
     String selected = metricsLb.getValue(metricsLb.getSelectedIndex());
-    return selected.length() > 0 ? WSMetrics.get(selected) : null;
+    return selected.length() > 0 ? loadedMetrics.get(selected) : null;
   }
 
   private void render() {
@@ -253,6 +253,11 @@ public class GwtTimeline extends AbstractPage {
     displayView(vPanel);
   }
 
+  private void displayView(Widget widget) {
+    panel.clear();
+    panel.add(widget);
+  }
+
   private Options createOptions() {
     Options options = Options.create();
     options.setAllowHtml(true);
@@ -271,9 +276,9 @@ public class GwtTimeline extends AbstractPage {
       }
     }
 
-    options.setOption("numberFormats",getNumberFormats());
+    options.setOption("numberFormats", getNumberFormats());
     int[] scaledCols = new int[selectedCols];
-    for ( int i = 0; i < selectedCols; i++) {
+    for (int i = 0; i < selectedCols; i++) {
       scaledCols[i] = i;
     }
     options.setScaleColumns(scaledCols);
@@ -284,16 +289,19 @@ public class GwtTimeline extends AbstractPage {
     return metric.getType().equals(ValueType.PERCENT) ? "0.0" : "0.##";
   }
 
-  private native JavaScriptObject getNumberFormats() /*-{
-    return this.numberFormats;
+  private native JavaScriptObject getNumberFormats()
+  /*-{
+  return this.numberFormats;
   }-*/;
 
-  private native void resetNumberFormats() /*-{
-    this.numberFormats = {};
+  private native void resetNumberFormats()
+  /*-{
+  this.numberFormats = {};
   }-*/;
 
-  private native void setNumberFormats(int key, String numberFormat) /*-{
-    this.numberFormats[key] = numberFormat;
+  private native void setNumberFormats(int key, String numberFormat)
+  /*-{
+  this.numberFormats[key] = numberFormat;
   }-*/;
 
 }

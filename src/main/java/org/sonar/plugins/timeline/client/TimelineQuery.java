@@ -20,16 +20,15 @@
 
 package org.sonar.plugins.timeline.client;
 
-import java.util.List;
-
+import com.google.gwt.visualization.client.Query;
+import com.google.gwt.visualization.client.Query.Callback;
+import com.google.gwt.visualization.client.QueryResponse;
 import org.sonar.api.web.gwt.client.Utils;
 import org.sonar.api.web.gwt.client.webservices.AbstractResourceQuery;
 import org.sonar.api.web.gwt.client.webservices.QueryCallBack;
-import org.sonar.api.web.gwt.client.webservices.WSMetrics.Metric;
+import org.sonar.wsclient.services.Metric;
 
-import com.google.gwt.visualization.client.Query;
-import com.google.gwt.visualization.client.QueryResponse;
-import com.google.gwt.visualization.client.Query.Callback;
+import java.util.List;
 
 public final class TimelineQuery extends AbstractResourceQuery<DataTable> {
 
@@ -66,7 +65,7 @@ public final class TimelineQuery extends AbstractResourceQuery<DataTable> {
     Callback queryCallBack = new Callback() {
       public void onResponse(QueryResponse response) {
         if (response.isError()) {
-          // not great but unfortunatly QueryResponse does not provide a better way to detect timeout 
+          // not great but unfortunatly QueryResponse does not provide a better way to detect timeout
           if (response.getMessage().toLowerCase().contains("timed out")) {
             callback.onTimeout();
           } else {
@@ -80,5 +79,5 @@ public final class TimelineQuery extends AbstractResourceQuery<DataTable> {
     Query query = Query.create(toString());
     query.send(queryCallBack);
   }
-  
+
 }

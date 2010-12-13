@@ -234,12 +234,11 @@ public class GwtTimeline extends Page {
     for (Date date : timemachineData.getData().keySet()) {
       int rowIndex = table.addRow();
       table.setValue(rowIndex, 0, date);
-      int columnIndex = 1;
-      for (String value : timemachineData.getData().get(date)) {
+      for (int i = 0; i < metrics.length; i++) {
+        Double value = timemachineData.getValueAsDouble(date, i);
         if (value != null) {
-          table.setValue(rowIndex, columnIndex, Double.valueOf(value));
+          table.setValue(rowIndex, i + 1, value);
         }
-        columnIndex++;
       }
     }
     for (Event event : events) {

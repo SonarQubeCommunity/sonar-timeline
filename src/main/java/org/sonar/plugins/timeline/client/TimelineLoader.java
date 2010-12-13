@@ -20,7 +20,6 @@
 
 package org.sonar.plugins.timeline.client;
 
-import org.sonar.wsclient.gwt.AbstractCallback;
 import org.sonar.wsclient.gwt.AbstractListCallback;
 import org.sonar.wsclient.gwt.Sonar;
 import org.sonar.wsclient.services.Event;
@@ -72,9 +71,9 @@ public abstract class TimelineLoader {
     TimeMachineQuery query = new TimeMachineQuery(resourceKey)
         .setMetrics(metricsToLoad)
         .setFrom(date);
-    Sonar.getInstance().find(query, new AbstractCallback<TimeMachineData>() {
+    Sonar.getInstance().findAll(query, new AbstractListCallback<TimeMachineData>() {
       @Override
-      protected void doOnResponse(TimeMachineData result) {
+      protected void doOnResponse(List<TimeMachineData> result) {
         data(metricsToLoad, result, events);
       }
 
@@ -90,7 +89,7 @@ public abstract class TimelineLoader {
     });
   }
 
-  abstract void data(String[] metrics, TimeMachineData timemachine, List<Event> events);
+  abstract void data(String[] metrics, List<TimeMachineData> timemachine, List<Event> events);
 
   abstract void noData();
 

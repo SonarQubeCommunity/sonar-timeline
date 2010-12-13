@@ -198,7 +198,7 @@ public class GwtTimeline extends Page {
       }
 
       @Override
-      void data(String[] metrics, TimeMachineData timemachine, List<Event> events) {
+      void data(String[] metrics, List<TimeMachineData> timemachine, List<Event> events) {
         DataTable table = getDataTable(metrics, timemachine, events);
         renderDataTable(table);
       }
@@ -226,7 +226,7 @@ public class GwtTimeline extends Page {
     tlPanel.add(toRender);
   }
 
-  private DataTable getDataTable(String[] metrics, TimeMachineData timemachineData, List<Event> events) {
+  private DataTable getDataTable(String[] metrics, List<TimeMachineData> timemachineData, List<Event> events) {
     DataTable table = DataTable.create();
     table.addColumn(ColumnType.DATE, "d", "Date");
     for (String metric : metrics) {
@@ -234,11 +234,11 @@ public class GwtTimeline extends Page {
     }
     table.addColumn(ColumnType.STRING, "e", "Event");
 
-    for (Date date : timemachineData.getData().keySet()) {
+    for (TimeMachineData data : timemachineData) {
       int rowIndex = table.addRow();
-      table.setValue(rowIndex, 0, date);
+      table.setValue(rowIndex, 0, data.getDate());
       for (int i = 0; i < metrics.length; i++) {
-        Double value = timemachineData.getValueAsDouble(date, i);
+        Double value = data.getValueAsDouble(i);
         if (value != null) {
           table.setValue(rowIndex, i + 1, value);
         }

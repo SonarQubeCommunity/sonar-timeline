@@ -26,13 +26,12 @@ import com.google.gwt.event.dom.client.ChangeEvent;
 import com.google.gwt.event.dom.client.ChangeHandler;
 import com.google.gwt.user.client.DOM;
 import com.google.gwt.user.client.ui.*;
+import com.google.gwt.visualization.client.AbstractDataTable.ColumnType;
+import com.google.gwt.visualization.client.DataTable;
 import com.google.gwt.visualization.client.VisualizationUtils;
 import com.google.gwt.visualization.client.visualizations.AnnotatedTimeLine;
 import com.google.gwt.visualization.client.visualizations.AnnotatedTimeLine.Options;
 import com.google.gwt.visualization.client.visualizations.AnnotatedTimeLine.ScaleType;
-import org.sonar.api.web.gwt.client.ResourceDictionary;
-import org.sonar.api.web.gwt.client.webservices.BaseQueryCallback;
-import org.sonar.api.web.gwt.client.webservices.WSMetrics.Metric.ValueType;
 import org.sonar.api.web.gwt.client.widgets.LoadingLabel;
 import org.sonar.gwt.ui.Page;
 import org.sonar.wsclient.gwt.AbstractCallback;
@@ -63,10 +62,13 @@ public class GwtTimeline extends Page {
 
   private Map<String, Metric> loadedMetrics = new HashMap<String, Metric>();
 
+  private Resource resource;
+
   @Override
   protected Widget doOnResourceLoad(Resource resource) {
     panel = new VerticalPanel();
     panel.add(new LoadingLabel());
+    this.resource = resource;
     load();
     return panel;
   }
@@ -109,7 +111,7 @@ public class GwtTimeline extends Page {
         ChangeHandler metricSelection = new ChangeHandler() {
           public void onChange(ChangeEvent event) {
             if (!allMetricsUnSelected() && !sameMetricsSelection()) {
-              loadTimeLine();
+              loadTimeline();
             }
           }
         };
@@ -162,7 +164,7 @@ public class GwtTimeline extends Page {
     Runnable onLoadCallback = new Runnable() {
       public void run() {
         render();
-        loadTimeLine();
+        loadTimeline();
       }
     };
     VisualizationUtils.loadVisualizationApi(onLoadCallback, AnnotatedTimeLine.PACKAGE);
@@ -178,38 +180,78 @@ public class GwtTimeline extends Page {
     return ordered;
   }
 
-  private void loadTimeLine() {
+  private void loadTimeline() {
     lockMetricsList(true);
     tlPanel.clear();
-    final LoadingLabel loading = new LoadingLabel();
-    tlPanel.add(loading);
+    tlPanel.add(new LoadingLabel());
 
-    TimelineQuery.get(ResourceDictionary.getResourceKey())
-        .setMetrics(getSelectedMetrics())
-        .execute(new BaseQueryCallback<DataTable>(loading) {
-          public void onResponse(DataTable response, JavaScriptObject jsonRawResponse) {
-            Element content = DOM.getElementById("content");
-            int width = content.getClientWidth() > 0 ? content.getClientWidth() : 800;
-            Widget toRender = response.getTable().getNumberOfRows() > 0 ?
-                new AnnotatedTimeLine(response.getTable(), createOptions(), width + "px", GwtTimeline.DEFAULT_HEIGHT + "px") :
-                new HTML("<p>No data</p>");
-            loading.removeFromParent();
-            lockMetricsList(false);
-            tlPanel.add(toRender);
-          }
+    Date date = new Date();
+    date.setYear(date.getYear() - 1);
 
-          @Override
-          public void onError(int errorCode, String errorMessage) {
-            lockMetricsList(false);
-            super.onError(errorCode, errorMessage);
-          }
+    new TimelineLoader(resource.getKey(), date, getSelectedMetrics()) {
+      @Override
+      void noData() {
+        renderNoData();
+      }
 
-          @Override
-          public void onTimeout() {
-            lockMetricsList(false);
-            super.onTimeout();
-          }
-        });
+      @Override
+      void data(String[] metrics, TimeMachineData timemachine, List<Event> events) {
+        DataTable table = getDataTable(metrics, timemachine, events);
+        renderDataTable(table);
+      }
+    };
+  }
+
+  private void renderDataTable(DataTable table) {
+    if (table != null && table.getNumberOfRows() > 0) {
+      Element content = DOM.getElementById("content");
+      int width = content.getClientWidth() > 0 ? content.getClientWidth() : 800;
+      Widget toRender = new AnnotatedTimeLine(table, createOptions(), width + "px", GwtTimeline.DEFAULT_HEIGHT + "px");
+      renderTimeline(toRender);
+    } else {
+      renderNoData();
+    }
+  }
+
+  private void renderNoData() {
+    renderTimeline(new HTML("<p>No data</p>"));
+  }
+
+  private void renderTimeline(Widget toRender) {
+    lockMetricsList(false);
+    tlPanel.clear();
+    tlPanel.add(toRender);
+  }
+
+  private DataTable getDataTable(String[] metrics, TimeMachineData timemachineData, List<Event> events) {
+    DataTable table = DataTable.create();
+    table.addColumn(ColumnType.DATE, "d", "Date");
+    for (String metric : metrics) {
+      table.addColumn(ColumnType.NUMBER, loadedMetrics.get(metric).getName(), metric);
+    }
+    table.addColumn(ColumnType.STRING, "e", "Event");
+
+    for (Date date : timemachineData.getData().keySet()) {
+      int rowIndex = table.addRow();
+      table.setValue(rowIndex, 0, date);
+      int columnIndex = 1;
+      for (String value : timemachineData.getData().get(date)) {
+        if (value != null) {
+          table.setValue(rowIndex, columnIndex, Double.valueOf(value));
+        }
+        columnIndex++;
+      }
+    }
+    for (Event event : events) {
+      int rowIndex = table.addRow();
+      String eventStr = event.getName();
+      if (event.getDescription() != null) {
+        eventStr += " : " + event.getDescription();
+      }
+      table.setValue(rowIndex, 0, event.getDate());
+      table.setValue(rowIndex, metrics.length + 1, eventStr);
+    }
+    return table;
   }
 
   private void lockMetricsList(boolean locked) {
@@ -218,16 +260,16 @@ public class GwtTimeline extends Page {
     }
   }
 
-  private List<Metric> getSelectedMetrics() {
-    List<Metric> metrics = new ArrayList<Metric>();
+  private String[] getSelectedMetrics() {
+    List<String> metrics = new ArrayList<String>();
     for (ListBox metricLb : metricsListBoxes) {
       Metric metric = getSelectedMetric(metricLb);
       if (metric != null) {
         // inverting metrics
-        metrics.add(0, metric);
+        metrics.add(0, metric.getKey());
       }
     }
-    return metrics;
+    return metrics.toArray(new String[metrics.size()]);
   }
 
   private Metric getSelectedMetric(ListBox metricsLb) {
@@ -286,7 +328,7 @@ public class GwtTimeline extends Page {
   }
 
   private String getNumberFormat(Metric metric) {
-    return metric.getType().equals(ValueType.PERCENT) ? "0.0" : "0.##";
+    return metric.getType().equals("PERCENT") ? "0.0" : "0.##";
   }
 
   private native JavaScriptObject getNumberFormats()

@@ -20,22 +20,20 @@
 
 package org.sonar.plugins.timeline;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.sonar.api.Extension;
 import org.sonar.api.Plugin;
 import org.sonar.api.Properties;
 import org.sonar.api.Property;
 import org.sonar.plugins.timeline.client.GwtTimeline;
 
-@Properties({
-  @Property(
+import java.util.ArrayList;
+import java.util.List;
+
+@Properties({ @Property(
       key = GwtTimeline.DEFAULT_METRICS_KEY,
       name = "Default selected metrics",
       description = "Comma-separated list of metric keys. Maximum of 3 values.",
-      defaultValue = GwtTimeline.DEFAULT_METRICS_VALUE)
-})
+      defaultValue = GwtTimeline.DEFAULT_METRICS_VALUE) })
 public class TimelinePlugin implements Plugin {
 
   public String getKey() {
@@ -53,7 +51,6 @@ public class TimelinePlugin implements Plugin {
   public List<Class<? extends Extension>> getExtensions() {
     List<Class<? extends Extension>> extensions = new ArrayList<Class<? extends Extension>>();
     extensions.add(GwtTimelinePage.class);
-    extensions.add(TimelineWebService.class);
     return extensions;
   }
 

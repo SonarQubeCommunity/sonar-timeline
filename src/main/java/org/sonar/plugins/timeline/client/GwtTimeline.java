@@ -69,6 +69,7 @@ public class GwtTimeline extends Page {
     panel = new VerticalPanel();
     panel.add(new LoadingLabel());
     this.resource = resource;
+    System.out.println("Start");
     load();
     return panel;
   }
@@ -77,6 +78,7 @@ public class GwtTimeline extends Page {
     Sonar.getInstance().find(PropertyQuery.createForKey(DEFAULT_METRICS_KEY), new AbstractCallback<Property>() {
       @Override
       protected void doOnResponse(Property result) {
+        System.out.println("Property done");
         String value = result.getValue();
         defaultMetrics = value.split(",");
         loadMetrics();
@@ -96,6 +98,7 @@ public class GwtTimeline extends Page {
     Sonar.getInstance().findAll(MetricQuery.all(), new AbstractListCallback<Metric>() {
       @Override
       protected void doOnResponse(List<Metric> result) {
+        System.out.println("Metrics done");
         for (Metric metric : result) {
           if (!excludedTypes.contains(metric.getType())) {
             loadedMetrics.put(metric.getKey(), metric);

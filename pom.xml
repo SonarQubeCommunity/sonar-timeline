@@ -132,6 +132,7 @@
               <skip>${skipGwt}</skip>
               <webappDirectory>${project.build.directory}/classes</webappDirectory>
               <extraJvmArgs>-Xmx512m -Dgwt.jjs.permutationWorkerFactory=com.google.gwt.dev.ThreadedPermutationWorkerFactory</extraJvmArgs>
+              <style>DETAILED</style>
             </configuration>
             <goals>
               <goal>compile</goal>

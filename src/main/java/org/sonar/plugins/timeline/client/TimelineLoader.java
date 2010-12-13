@@ -28,7 +28,6 @@ import org.sonar.wsclient.services.EventQuery;
 import org.sonar.wsclient.services.TimeMachineData;
 import org.sonar.wsclient.services.TimeMachineQuery;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -44,10 +43,7 @@ public abstract class TimelineLoader {
     this.date = date;
     this.metricsToLoad = metrics;
 
-    events = new ArrayList<Event>();
-    loadTimemachineData();
-    // TODO EventUnmarshaller not implemented in sonar-gwt-api
-    // loadEventsData();
+    loadEventsData();
   }
 
   private void loadEventsData() {

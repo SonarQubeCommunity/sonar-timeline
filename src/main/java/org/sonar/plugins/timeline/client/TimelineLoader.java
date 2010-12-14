@@ -27,27 +27,22 @@ import org.sonar.wsclient.services.EventQuery;
 import org.sonar.wsclient.services.TimeMachineData;
 import org.sonar.wsclient.services.TimeMachineQuery;
 
-import java.util.Date;
 import java.util.List;
 
 public abstract class TimelineLoader {
 
   private String resourceKey;
   private String[] metricsToLoad;
-  private Date date;
   private List<Event> events;
 
-  public TimelineLoader(String resourceKey, Date date, String[] metrics) {
+  public TimelineLoader(String resourceKey, String[] metrics) {
     this.resourceKey = resourceKey;
-    this.date = date;
     this.metricsToLoad = metrics;
-
     loadEventsData();
   }
 
   private void loadEventsData() {
-    EventQuery eventQuery = new EventQuery(resourceKey)
-        .setFrom(date, true);
+    EventQuery eventQuery = new EventQuery(resourceKey);
     Sonar.getInstance().findAll(eventQuery, new AbstractListCallback<Event>() {
       @Override
       protected void doOnResponse(List<Event> result) {
@@ -68,9 +63,7 @@ public abstract class TimelineLoader {
   }
 
   private void loadTimemachineData() {
-    TimeMachineQuery query = new TimeMachineQuery(resourceKey)
-        .setMetrics(metricsToLoad)
-        .setFrom(date);
+    TimeMachineQuery query = TimeMachineQuery.createForMetrics(resourceKey, metricsToLoad);
     Sonar.getInstance().findAll(query, new AbstractListCallback<TimeMachineData>() {
       @Override
       protected void doOnResponse(List<TimeMachineData> result) {

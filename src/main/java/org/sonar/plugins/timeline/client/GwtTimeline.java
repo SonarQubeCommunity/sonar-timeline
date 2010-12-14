@@ -45,6 +45,9 @@ public class GwtTimeline extends Page {
 
   public static final String GWT_ID = "org.sonar.plugins.timeline.GwtTimeline";
 
+  // TODO RATING - see http://jira.codehaus.org/browse/SONARPLUGINS-843
+  public static final List<String> SUPPORTED_METRIC_TYPES = Arrays.asList("INT", "FLOAT", "PERCENT", "MILLISEC");
+
   public static final int DEFAULT_HEIGHT = 480;
 
   public static final String DEFAULT_METRICS_KEY = "sonar.timeline.defaultmetrics";
@@ -69,7 +72,6 @@ public class GwtTimeline extends Page {
     panel = new VerticalPanel();
     panel.add(new LoadingLabel());
     this.resource = resource;
-    System.out.println("Start");
     load();
     return panel;
   }
@@ -78,9 +80,7 @@ public class GwtTimeline extends Page {
     Sonar.getInstance().find(PropertyQuery.createForKey(DEFAULT_METRICS_KEY), new AbstractCallback<Property>() {
       @Override
       protected void doOnResponse(Property result) {
-        System.out.println("Property done");
-        String value = result.getValue();
-        defaultMetrics = value.split(",");
+        defaultMetrics = result.getValue().split(",");
         loadMetrics();
       }
 
@@ -93,14 +93,11 @@ public class GwtTimeline extends Page {
   }
 
   private void loadMetrics() {
-    final List<String> excludedTypes = Arrays.asList("BOOL", "DATA", "DISTRIB", "STRING", "LEVEL");
-
     Sonar.getInstance().findAll(MetricQuery.all(), new AbstractListCallback<Metric>() {
       @Override
       protected void doOnResponse(List<Metric> result) {
-        System.out.println("Metrics done");
         for (Metric metric : result) {
-          if (!excludedTypes.contains(metric.getType())) {
+          if (SUPPORTED_METRIC_TYPES.contains(metric.getType())) {
             loadedMetrics.put(metric.getKey(), metric);
           }
         }
@@ -188,10 +185,7 @@ public class GwtTimeline extends Page {
     tlPanel.clear();
     tlPanel.add(new LoadingLabel());
 
-    Date date = new Date();
-    date.setYear(date.getYear() - 1);
-
-    new TimelineLoader(resource.getKey(), date, getSelectedMetrics()) {
+    new TimelineLoader(resource.getKey(), getSelectedMetrics()) {
       @Override
       void noData() {
         renderNoData();
@@ -199,8 +193,7 @@ public class GwtTimeline extends Page {
 
       @Override
       void data(String[] metrics, List<TimeMachineData> timemachine, List<Event> events) {
-        DataTable table = getDataTable(metrics, timemachine, events);
-        renderDataTable(table);
+        renderDataTable(getDataTable(metrics, timemachine, events));
       }
     };
   }

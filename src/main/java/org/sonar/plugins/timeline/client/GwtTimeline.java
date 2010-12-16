@@ -24,6 +24,8 @@ import com.google.gwt.core.client.JavaScriptObject;
 import com.google.gwt.dom.client.Element;
 import com.google.gwt.event.dom.client.ChangeEvent;
 import com.google.gwt.event.dom.client.ChangeHandler;
+import com.google.gwt.event.dom.client.ClickEvent;
+import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.user.client.DOM;
 import com.google.gwt.user.client.ui.*;
 import com.google.gwt.visualization.client.AbstractDataTable.ColumnType;
@@ -59,6 +61,7 @@ public class GwtTimeline extends Page {
   private ListBox metricsListBox2 = new ListBox();
   private ListBox metricsListBox3 = new ListBox();
   private List<ListBox> metricsListBoxes = null;
+  private CheckBox singleScaleCheckBox = new CheckBox("single scale");
   private SimplePanel tlPanel = null;
 
   private VerticalPanel panel;
@@ -66,6 +69,8 @@ public class GwtTimeline extends Page {
   private Map<String, Metric> loadedMetrics = new HashMap<String, Metric>();
 
   private Resource resource;
+
+  private DataTable dataTable;
 
   @Override
   protected Widget doOnResourceLoad(Resource resource) {
@@ -118,6 +123,11 @@ public class GwtTimeline extends Page {
         for (ListBox metricLb : metricsListBoxes) {
           metricLb.addChangeHandler(metricSelection);
         }
+        singleScaleCheckBox.addClickHandler(new ClickHandler() {
+          public void onClick(ClickEvent event) {
+            renderDataTable(dataTable);
+          }
+        });
 
         loadVisualizationApi();
       }
@@ -193,7 +203,8 @@ public class GwtTimeline extends Page {
 
       @Override
       void data(String[] metrics, List<TimeMachineData> timemachine, List<Event> events) {
-        renderDataTable(getDataTable(metrics, timemachine, events));
+        dataTable = getDataTable(metrics, timemachine, events);
+        renderDataTable(dataTable);
       }
     };
   }
@@ -282,6 +293,7 @@ public class GwtTimeline extends Page {
       hPanel.add(new HTML("&nbsp;"));
       hPanel.add(metricLb);
     }
+    hPanel.add(singleScaleCheckBox);
 
     VerticalPanel vPanel = new VerticalPanel();
     vPanel.add(hPanel);
@@ -303,7 +315,6 @@ public class GwtTimeline extends Page {
     options.setAnnotationsWidth(15);
     options.setOption("fill", 15);
     options.setOption("thickness", 2);
-    options.setScaleType(ScaleType.ALLFIXED);
 
     resetNumberFormats();
     int selectedCols = 0;
@@ -312,13 +323,16 @@ public class GwtTimeline extends Page {
         setNumberFormats(selectedCols++, getNumberFormat(getSelectedMetric(metricLb)));
       }
     }
-
     options.setOption("numberFormats", getNumberFormats());
-    int[] scaledCols = new int[selectedCols];
-    for (int i = 0; i < selectedCols; i++) {
-      scaledCols[i] = i;
+
+    if (!singleScaleCheckBox.getValue()) {
+      int[] scaledCols = new int[selectedCols];
+      for (int i = 0; i < selectedCols; i++) {
+        scaledCols[i] = i;
+      }
+      options.setScaleType(ScaleType.ALLFIXED);
+      options.setScaleColumns(scaledCols);
     }
-    options.setScaleColumns(scaledCols);
     return options;
   }
 

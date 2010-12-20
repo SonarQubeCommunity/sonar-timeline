@@ -20,11 +20,12 @@
 
 package org.sonar.plugins.timeline.client;
 
+import org.sonar.wsclient.gwt.AbstractCallback;
 import org.sonar.wsclient.gwt.AbstractListCallback;
 import org.sonar.wsclient.gwt.Sonar;
 import org.sonar.wsclient.services.Event;
 import org.sonar.wsclient.services.EventQuery;
-import org.sonar.wsclient.services.TimeMachineData;
+import org.sonar.wsclient.services.TimeMachine;
 import org.sonar.wsclient.services.TimeMachineQuery;
 
 import java.util.List;
@@ -47,7 +48,7 @@ public abstract class TimelineLoader {
       @Override
       protected void doOnResponse(List<Event> result) {
         events = result;
-        loadTimemachineData();
+        loadTimemachine();
       }
 
       @Override
@@ -62,12 +63,12 @@ public abstract class TimelineLoader {
     });
   }
 
-  private void loadTimemachineData() {
+  private void loadTimemachine() {
     TimeMachineQuery query = TimeMachineQuery.createForMetrics(resourceKey, metricsToLoad);
-    Sonar.getInstance().findAll(query, new AbstractListCallback<TimeMachineData>() {
+    Sonar.getInstance().find(query, new AbstractCallback<TimeMachine>() {
       @Override
-      protected void doOnResponse(List<TimeMachineData> result) {
-        data(metricsToLoad, result, events);
+      protected void doOnResponse(TimeMachine timeMachine) {
+        data(metricsToLoad, timeMachine, events);
       }
 
       @Override
@@ -82,7 +83,7 @@ public abstract class TimelineLoader {
     });
   }
 
-  abstract void data(String[] metrics, List<TimeMachineData> timemachine, List<Event> events);
+  abstract void data(String[] metrics, TimeMachine timemachine, List<Event> events);
 
   abstract void noData();
 

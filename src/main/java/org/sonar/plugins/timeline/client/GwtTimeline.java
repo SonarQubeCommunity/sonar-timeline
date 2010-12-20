@@ -26,6 +26,7 @@ import com.google.gwt.event.dom.client.ChangeEvent;
 import com.google.gwt.event.dom.client.ChangeHandler;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
+import com.google.gwt.json.client.JSONNumber;
 import com.google.gwt.user.client.DOM;
 import com.google.gwt.user.client.ui.*;
 import com.google.gwt.visualization.client.AbstractDataTable.ColumnType;
@@ -202,7 +203,7 @@ public class GwtTimeline extends Page {
       }
 
       @Override
-      void data(String[] metrics, List<TimeMachineData> timemachine, List<Event> events) {
+      void data(String[] metrics, TimeMachine timemachine, List<Event> events) {
         dataTable = getDataTable(metrics, timemachine, events);
         renderDataTable(dataTable);
       }
@@ -230,7 +231,7 @@ public class GwtTimeline extends Page {
     tlPanel.add(toRender);
   }
 
-  private DataTable getDataTable(String[] metrics, List<TimeMachineData> timemachineData, List<Event> events) {
+  private DataTable getDataTable(String[] metrics, TimeMachine timeMachine, List<Event> events) {
     DataTable table = DataTable.create();
     table.addColumn(ColumnType.DATE, "d", "Date");
     for (String metric : metrics) {
@@ -238,13 +239,13 @@ public class GwtTimeline extends Page {
     }
     table.addColumn(ColumnType.STRING, "e", "Event");
 
-    for (TimeMachineData data : timemachineData) {
+    for (TimeMachineCell cell : timeMachine.getCells()) {
       int rowIndex = table.addRow();
-      table.setValue(rowIndex, 0, data.getDate());
+      table.setValue(rowIndex, 0, cell.getDate());
       for (int i = 0; i < metrics.length; i++) {
-        Double value = data.getValueAsDouble(i);
+        JSONNumber value = (JSONNumber)cell.getValues()[i];
         if (value != null) {
-          table.setValue(rowIndex, i + 1, value);
+          table.setValue(rowIndex, i + 1, value.doubleValue());
         }
       }
     }

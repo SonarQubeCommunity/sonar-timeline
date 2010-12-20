@@ -20,13 +20,12 @@
 
 package org.sonar.plugins.timeline;
 
-import org.sonar.api.Extension;
 import org.sonar.api.Plugin;
 import org.sonar.api.Properties;
 import org.sonar.api.Property;
 import org.sonar.plugins.timeline.client.GwtTimeline;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @Properties({ @Property(
@@ -48,10 +47,8 @@ public class TimelinePlugin implements Plugin {
     return "Advanced time machine chart";
   }
 
-  public List<Class<? extends Extension>> getExtensions() {
-    List<Class<? extends Extension>> extensions = new ArrayList<Class<? extends Extension>>();
-    extensions.add(GwtTimelinePage.class);
-    return extensions;
+  public List getExtensions() {
+    return Arrays.asList(GwtTimelinePage.class);
   }
 
   @Override

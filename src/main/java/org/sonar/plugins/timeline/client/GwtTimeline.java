@@ -26,7 +26,7 @@ import com.google.gwt.event.dom.client.ChangeEvent;
 import com.google.gwt.event.dom.client.ChangeHandler;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
-import com.google.gwt.json.client.JSONNumber;
+import com.google.gwt.json.client.JSONValue;
 import com.google.gwt.user.client.DOM;
 import com.google.gwt.user.client.ui.*;
 import com.google.gwt.visualization.client.AbstractDataTable.ColumnType;
@@ -36,6 +36,7 @@ import com.google.gwt.visualization.client.visualizations.AnnotatedTimeLine;
 import com.google.gwt.visualization.client.visualizations.AnnotatedTimeLine.Options;
 import com.google.gwt.visualization.client.visualizations.AnnotatedTimeLine.ScaleType;
 import org.sonar.api.web.gwt.client.widgets.LoadingLabel;
+import org.sonar.gwt.JsonUtils;
 import org.sonar.gwt.ui.Page;
 import org.sonar.wsclient.gwt.AbstractCallback;
 import org.sonar.wsclient.gwt.AbstractListCallback;
@@ -62,7 +63,7 @@ public class GwtTimeline extends Page {
   private ListBox metricsListBox2 = new ListBox();
   private ListBox metricsListBox3 = new ListBox();
   private List<ListBox> metricsListBoxes = null;
-  private CheckBox singleScaleCheckBox = new CheckBox("single scale");
+  private CheckBox singleScaleCheckBox = new CheckBox("Single scale");
   private SimplePanel tlPanel = null;
 
   private VerticalPanel panel;
@@ -103,12 +104,12 @@ public class GwtTimeline extends Page {
       @Override
       protected void doOnResponse(List<Metric> result) {
         for (Metric metric : result) {
-          if (SUPPORTED_METRIC_TYPES.contains(metric.getType())) {
+          if (isSupported(metric)) {
             loadedMetrics.put(metric.getKey(), metric);
           }
         }
 
-        metrics = orderMetrics(result);
+        metrics = filterAndOrderMetrics(result);
         metricsListBoxes = Arrays.asList(metricsListBox1, metricsListBox2, metricsListBox3);
         loadListBox(metricsListBox1, defaultMetrics.length > 0 ? defaultMetrics[0] : null);
         loadListBox(metricsListBox2, defaultMetrics.length > 1 ? defaultMetrics[1] : null);
@@ -181,14 +182,22 @@ public class GwtTimeline extends Page {
     VisualizationUtils.loadVisualizationApi(onLoadCallback, AnnotatedTimeLine.PACKAGE);
   }
 
-  private SortedSet<Metric> orderMetrics(Collection<Metric> metrics) {
+  private static SortedSet<Metric> filterAndOrderMetrics(Collection<Metric> metrics) {
     TreeSet<Metric> ordered = new TreeSet<Metric>(new Comparator<Metric>() {
       public int compare(Metric o1, Metric o2) {
         return o1.getName().compareTo(o2.getName());
       }
     });
-    ordered.addAll(metrics);
+    for (Metric metric : metrics) {
+      if (isSupported(metric)) {
+        ordered.add(metric);
+      }
+    }
     return ordered;
+  }
+
+  private static boolean isSupported(Metric metric) {
+    return SUPPORTED_METRIC_TYPES.contains(metric.getType()) && !metric.getHidden();
   }
 
   private void loadTimeline() {
@@ -243,9 +252,9 @@ public class GwtTimeline extends Page {
       int rowIndex = table.addRow();
       table.setValue(rowIndex, 0, cell.getDate());
       for (int i = 0; i < metrics.length; i++) {
-        JSONNumber value = (JSONNumber)cell.getValues()[i];
+        Double value = JsonUtils.getAsDouble((JSONValue) cell.getValues()[i]);
         if (value != null) {
-          table.setValue(rowIndex, i + 1, value.doubleValue());
+          table.setValue(rowIndex, i + 1, value);
         }
       }
     }
@@ -342,18 +351,18 @@ public class GwtTimeline extends Page {
   }
 
   private native JavaScriptObject getNumberFormats()
-  /*-{
-  return this.numberFormats;
-  }-*/;
+    /*-{
+    return this.numberFormats;
+    }-*/;
 
   private native void resetNumberFormats()
-  /*-{
-  this.numberFormats = {};
-  }-*/;
+    /*-{
+    this.numberFormats = {};
+    }-*/;
 
   private native void setNumberFormats(int key, String numberFormat)
-  /*-{
-  this.numberFormats[key] = numberFormat;
-  }-*/;
+    /*-{
+    this.numberFormats[key] = numberFormat;
+    }-*/;
 
 }

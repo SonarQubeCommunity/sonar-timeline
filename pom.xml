@@ -57,21 +57,6 @@
     <url>http://jira.codehaus.org/browse/SONARPLUGINS/component/14068</url>
   </issueManagement>
 
-  <repositories>
-    <repository>
-      <!-- for gwt-incubator july-14-2009 -->
-      <id>sonar</id>
-      <name>Sonar</name>
-      <url>http://repository.sonarsource.org/content/repositories/sonar</url>
-      <releases>
-        <enabled>true</enabled>
-      </releases>
-      <snapshots>
-        <enabled>false</enabled>
-      </snapshots>
-    </repository>
-  </repositories>
-
   <properties>
     <sonar.version>2.5-SNAPSHOT</sonar.version>
     <sonar.pluginName>Timeline</sonar.pluginName>

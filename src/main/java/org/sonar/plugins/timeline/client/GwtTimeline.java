@@ -49,7 +49,6 @@ public class GwtTimeline extends Page {
 
   public static final String GWT_ID = "org.sonar.plugins.timeline.GwtTimeline";
 
-  // TODO RATING - see http://jira.codehaus.org/browse/SONARPLUGINS-843
   public static final List<String> SUPPORTED_METRIC_TYPES = Arrays.asList("INT", "FLOAT", "PERCENT", "MILLISEC");
 
   public static final int DEFAULT_HEIGHT = 480;

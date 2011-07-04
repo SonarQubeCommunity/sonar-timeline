@@ -87,12 +87,32 @@
       <version>2.0.4</version>
       <scope>provided</scope>
     </dependency>
+
+    <!--
+    Classifier for gwt-visualization set to 'noredist',
+    because we use more recent version of gwt-ajaxloader than bundled in gwt-visualization 1.0.2.
+    See SONARPLUGINS-1231
+    -->
+    <dependency>
+      <groupId>com.google.gwt.google-apis</groupId>
+      <artifactId>gwt-ajaxloader</artifactId>
+      <version>1.1.0</version>
+      <scope>provided</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>junit</groupId>
+          <artifactId>junit</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
     <dependency>
       <groupId>com.google.gwt.google-apis</groupId>
       <artifactId>gwt-visualization</artifactId>
       <version>1.0.2</version>
+      <classifier>noredist</classifier>
       <scope>provided</scope>
     </dependency>
+
     <dependency>
       <groupId>com.google.gwt</groupId>
       <artifactId>gwt-incubator</artifactId>

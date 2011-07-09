@@ -14,7 +14,7 @@
   <version>1.2-SNAPSHOT</version>
 
   <name>Sonar Timeline plugin</name>
-  <description>Advanced time machine chart.</description>
+  <description>Advanced time machine chart (requires an internet access).</description>
   <url>http://docs.codehaus.org/display/SONAR/Timeline+Plugin</url>
   <organization>
     <name>SonarSource</name>

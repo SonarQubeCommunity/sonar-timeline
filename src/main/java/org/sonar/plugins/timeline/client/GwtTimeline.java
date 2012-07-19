@@ -28,7 +28,14 @@ import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.json.client.JSONValue;
 import com.google.gwt.user.client.DOM;
-import com.google.gwt.user.client.ui.*;
+import com.google.gwt.user.client.ui.CheckBox;
+import com.google.gwt.user.client.ui.HTML;
+import com.google.gwt.user.client.ui.HorizontalPanel;
+import com.google.gwt.user.client.ui.Label;
+import com.google.gwt.user.client.ui.ListBox;
+import com.google.gwt.user.client.ui.SimplePanel;
+import com.google.gwt.user.client.ui.VerticalPanel;
+import com.google.gwt.user.client.ui.Widget;
 import com.google.gwt.visualization.client.AbstractDataTable.ColumnType;
 import com.google.gwt.visualization.client.DataTable;
 import com.google.gwt.visualization.client.VisualizationUtils;
@@ -41,9 +48,24 @@ import org.sonar.gwt.ui.Page;
 import org.sonar.wsclient.gwt.AbstractCallback;
 import org.sonar.wsclient.gwt.AbstractListCallback;
 import org.sonar.wsclient.gwt.Sonar;
-import org.sonar.wsclient.services.*;
+import org.sonar.wsclient.services.Event;
+import org.sonar.wsclient.services.Metric;
+import org.sonar.wsclient.services.MetricQuery;
+import org.sonar.wsclient.services.Property;
+import org.sonar.wsclient.services.PropertyQuery;
+import org.sonar.wsclient.services.Resource;
+import org.sonar.wsclient.services.TimeMachine;
+import org.sonar.wsclient.services.TimeMachineCell;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 public class GwtTimeline extends Page {
 
@@ -196,7 +218,7 @@ public class GwtTimeline extends Page {
   }
 
   private static boolean isSupported(Metric metric) {
-    return SUPPORTED_METRIC_TYPES.contains(metric.getType()) && !metric.getHidden();
+    return SUPPORTED_METRIC_TYPES.contains(metric.getType()) && (metric.getHidden() == null || !metric.getHidden());
   }
 
   private void loadTimeline() {
@@ -350,18 +372,18 @@ public class GwtTimeline extends Page {
   }
 
   private native JavaScriptObject getNumberFormats()
-    /*-{
-    return this.numberFormats;
-    }-*/;
+  /*-{
+  return this.numberFormats;
+  }-*/;
 
   private native void resetNumberFormats()
-    /*-{
-    this.numberFormats = {};
-    }-*/;
+  /*-{
+  this.numberFormats = {};
+  }-*/;
 
   private native void setNumberFormats(int key, String numberFormat)
-    /*-{
-    this.numberFormats[key] = numberFormat;
-    }-*/;
+  /*-{
+  this.numberFormats[key] = numberFormat;
+  }-*/;
 
 }

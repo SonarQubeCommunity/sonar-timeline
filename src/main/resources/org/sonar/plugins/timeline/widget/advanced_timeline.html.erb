@@ -5,13 +5,8 @@
   metrics << widget_properties['metric3'] if widget_properties['metric3']
   
   # Retrieve metric trend information and sort it by snapshot
-  options = {}
-  from_date = dashboard_configuration.from_datetime
-  if from_date
-    options[:from] = from_date
-  end
   trend_data_by_sid = {}
-  TrendsChart.time_machine_measures(@resource, metrics.map {|m| m.id}, options).each() do |trend_item|
+  TrendsChart.time_machine_measures(@resource, metrics.map {|m| m.id}, {}).each() do |trend_item|
     s_id = trend_item["sid"].to_i
     m_id = trend_item["metric_id"].to_i
     
@@ -73,6 +68,8 @@
   end  
   js_data += "]);\n"
   
+  # Get the from_date if a period has been selected
+  from_date = dashboard_configuration.from_datetime
 %>
 
 <div id='advanced_timeline_<%= widget.id -%>'></div>
@@ -102,6 +99,9 @@
       numberFormats: {<%= metrics.each_with_index.map{|m, index| "\"" + index.to_s + "\":\"" + (m.value_type==Metric::VALUE_TYPE_PERCENT ? "0.0" : "0.##") + "\""}.join(',') -%>}
       <% if !widget_properties['singleScale'] %>
       , scaleType: 'allfixed', scaleColumns: [<%= metrics.each_with_index.map{|m, index| index.to_s}.join(',') -%>]
+      <% end %>
+      <% if from_date %>
+      , zoomStartTime: new Date(<%= from_date.year -%>, <%= from_date.month-1 -%>, <%= from_date.day -%>)      
       <% end %>
     });
   }

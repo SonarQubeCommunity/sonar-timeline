@@ -6,9 +6,11 @@
   
   # Retrieve metric trend information and sort it by snapshot
   trend_data_by_sid = {}
+  available_metric_ids = []
   TrendsChart.time_machine_measures(@resource, metrics.map {|m| m.id}, {}).each() do |trend_item|
     s_id = trend_item["sid"].to_i
     m_id = trend_item["metric_id"].to_i
+    available_metric_ids << m_id unless available_metric_ids.include?(m_id)
     
     unless trend_data_by_sid[s_id]
       s_date = trend_item["created_at"]
@@ -20,56 +22,61 @@
     trend_data_by_sid[s_id][m_id] = trend_item["value"]
   end
   
-  # Retrieve events information
-  Event.find(:all, :conditions => ["snapshot_id IN (?)", trend_data_by_sid.keys]).each() do |event|
-    trend_data_by_sid[event.snapshot_id][:event] = event
-  end
+  # Filter metrics and remove those which do not have any associated measure
+  metrics.reject! {|m| !available_metric_ids.include?(m.id)}
   
-  # Generate JS data for the graph
-  js_data = "new google.visualization.DataTable();data.addColumn('date', 'Date');\n"
-  metrics.each_with_index() do |metric, index|
-    js_data += "data.addColumn('number', '"
-    js_data += metric.short_name
-    js_data += "');\n"
-    # add the 2 next columns for events only after the 1rst metric
-    js_data += "data.addColumn('string', 'title1');\ndata.addColumn('string', 'text1');\n" if index==0
-  end
-  js_data += "data.addRows(["
-  count = 0
-  trend_data_by_sid.each() do |s_id, trend_data|
-    # Format of a row is as following: [new Date(2008, 1 ,5), 41476, 'Bought Pens','Bought 200k pens', 66467, undefined, undefined],
-    count += 1    
-    
-    # Need to decrease by 1 the month as the JS Date object start months at 0 (= January)
-    s_date = trend_data[:date]
-    js_data += "[new Date(" + s_date.year.to_s + "," + (s_date.month - 1).to_s + "," + s_date.day.to_s + "), "
-    
-    # Add first metric
-    js_data += trend_data[metrics[0].id].to_s + ", "
-
-	# Add event if it exists    
-    s_event = trend_data[:event]
-    if s_event
-      js_data += "\"" + s_event.name + "\", " + (s_event.description ? "\""+s_event.description+"\"" : "undefined")
-    else
-      js_data += "undefined, undefined"
+  unless metrics.empty?
+    # Retrieve events information
+    Event.find(:all, :conditions => ["snapshot_id IN (?)", trend_data_by_sid.keys]).each() do |event|
+      trend_data_by_sid[event.snapshot_id][:event] = event
     end
     
-    # Add 2nd and 3rd optional metric if they exist
-    (1..2).each do |index|
-      metric = metrics[index]
-      if metric
-        js_data += ", " + trend_data[metric.id]
+    # Generate JS data for the graph
+    js_data = "new google.visualization.DataTable();data.addColumn('date', 'Date');\n"
+    metrics.each_with_index() do |metric, index|
+      js_data += "data.addColumn('number', '"
+      js_data += metric.short_name
+      js_data += "');\n"
+      # add the 2 next columns for events only after the 1rst metric
+      js_data += "data.addColumn('string', 'title1');\ndata.addColumn('string', 'text1');\n" if index==0
+    end
+    js_data += "data.addRows(["
+    count = 0
+    trend_data_by_sid.each() do |s_id, trend_data|
+      # Format of a row is as following: [new Date(2008, 1 ,5), 41476, 'Bought Pens','Bought 200k pens', 66467, undefined, undefined],
+      count += 1    
+      
+      # Need to decrease by 1 the month as the JS Date object start months at 0 (= January)
+      s_date = trend_data[:date]
+      js_data += "[new Date(" + s_date.year.to_s + "," + (s_date.month - 1).to_s + "," + s_date.day.to_s + "), "
+      
+      # Add first metric
+      js_data += (trend_data[metrics[0].id] ? trend_data[metrics[0].id].to_s : 'undefined') + ", "
+  
+    # Add event if it exists    
+      s_event = trend_data[:event]
+      if s_event
+        js_data += "\"" + s_event.name + "\", " + (s_event.description ? "\""+s_event.description+"\"" : "undefined")
+      else
+        js_data += "undefined, undefined"
       end
-    end
+      
+      # Add 2nd and 3rd optional metric if they exist
+      (1..2).each do |index|
+        metric = metrics[index]
+        if metric
+          js_data += ", " + (trend_data[metric.id] ? trend_data[metric.id].to_s : 'undefined')
+        end
+      end
+      
+      js_data += "]\n"
+      js_data += "," if count < trend_data_by_sid.size
+    end  
+    js_data += "])"
     
-    js_data += "]\n"
-    js_data += "," if count < trend_data_by_sid.size
-  end  
-  js_data += "])"
-  
-  # Get the from_date if a period has been selected
-  from_date = dashboard_configuration.from_datetime
+    # Get the from_date if a period has been selected
+    from_date = dashboard_configuration.from_datetime
+
 %>
 
 <div id='advanced_timeline_<%= widget.id -%>'></div>
@@ -107,3 +114,5 @@
     });  
   });
 </script>
+
+<% end %>

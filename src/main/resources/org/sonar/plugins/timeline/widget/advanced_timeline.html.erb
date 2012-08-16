@@ -66,7 +66,7 @@
     js_data += "]\n"
     js_data += "," if count < trend_data_by_sid.size
   end  
-  js_data += "]);\n"
+  js_data += "])"
   
   # Get the from_date if a period has been selected
   from_date = dashboard_configuration.from_datetime
@@ -75,19 +75,20 @@
 <div id='advanced_timeline_<%= widget.id -%>'></div>
 
 <script type="text/javascript">
-  var jsProtocol = (("https:" == document.location.protocol) ? "https://" : "http://");
-  document.write(unescape("%3Cscript src='" + jsProtocol + "www.google.com/jsapi' type='text/javascript'%3E%3C/script%3E"));
+  // Load the Google JS API - but only if it hasn't been already loaded
+  if (!window['google']) {
+    var jsProtocol = (("https:" == document.location.protocol) ? "https://" : "http://");
+    document.write(unescape("%3Cscript src='" + jsProtocol + "www.google.com/jsapi' type='text/javascript'%3E%3C/script%3E")); 
+  }
 </script>
 
-<script type='text/javascript'>
-  chart_div = $('advanced_timeline_<%= widget.id -%>');
-  chart_div.setStyle("height: <%= widget_properties['height'] -%>px");
-  
+<script type='text/javascript'>  
   google.load('visualization', '1', {'packages':['annotatedtimeline']});
-  google.setOnLoadCallback(drawChart);
-  
-  function drawChart() {
-    var data = <%= js_data -%>
+  google.setOnLoadCallback(function() {
+    var chart_div = $('advanced_timeline_<%= widget.id -%>');
+    chart_div.setStyle("height: <%= widget_properties['height'] -%>px");
+    
+    var data = <%= js_data -%>;
     var chart = new google.visualization.AnnotatedTimeLine(chart_div);
     chart.draw(data, {
       allowHtml: true,
@@ -103,6 +104,6 @@
       <% if from_date %>
       , zoomStartTime: new Date(<%= from_date.year -%>, <%= from_date.month-1 -%>, <%= from_date.day -%>)      
       <% end %>
-    });
-  }
+    });  
+  });
 </script>

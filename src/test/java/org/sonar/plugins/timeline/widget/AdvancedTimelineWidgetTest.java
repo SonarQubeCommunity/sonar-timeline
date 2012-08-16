@@ -17,26 +17,29 @@
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02
  */
+package org.sonar.plugins.timeline.widget;
 
-package org.sonar.plugins.timeline;
-
-import org.junit.Before;
 import org.junit.Test;
+
+import java.io.File;
 
 import static org.fest.assertions.Assertions.assertThat;
 
-public class TimelinePluginTest {
+public class AdvancedTimelineWidgetTest {
 
-  private TimelinePlugin plugin;
-
-  @Before
-  public void setUp() {
-    plugin = new TimelinePlugin();
+  @Test
+  public void checkProductionMode() {
+    // Path to template is frequently changed in dev environments.
+    // This test verifies that this dev path has not been accidentally committed.
+    String path = new AdvancedTimelineWidget().getTemplatePath();
+    assertThat(getClass().getResource(path)).isNotNull();
+    assertThat(new File(path)).doesNotExist();
   }
 
   @Test
-  public void defineExtensions() {
-    assertThat(plugin.getExtensions().size()).isGreaterThan(0);
+  public void hasIdAndTitle() {
+    AdvancedTimelineWidget widget = new AdvancedTimelineWidget();
+    assertThat(widget.getId()).isNotEmpty();
+    assertThat(widget.getTitle()).isNotEmpty();
   }
-
 }

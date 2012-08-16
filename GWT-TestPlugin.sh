@@ -1,1 +1,0 @@
-mvn gwt:run -DrunTarget=org.sonar.plugins.timeline.GwtTimeline/test.html

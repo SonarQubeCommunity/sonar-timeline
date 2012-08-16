@@ -20,39 +20,18 @@
 
 package org.sonar.plugins.timeline;
 
-import org.sonar.api.Plugin;
-import org.sonar.api.Properties;
-import org.sonar.api.Property;
-import org.sonar.plugins.timeline.client.GwtTimeline;
+import org.sonar.plugins.timeline.widget.AdvancedTimelineWidget;
+
+import org.sonar.api.SonarPlugin;
 
 import java.util.Arrays;
 import java.util.List;
 
-@Properties({ @Property(
-      key = GwtTimeline.DEFAULT_METRICS_KEY,
-      name = "Default selected metrics",
-      description = "Comma-separated list of metric keys. Maximum of 3 values.",
-      defaultValue = GwtTimeline.DEFAULT_METRICS_VALUE) })
-public class TimelinePlugin implements Plugin {
+public class TimelinePlugin extends SonarPlugin {
 
-  public String getKey() {
-    return "timeline";
-  }
-
-  public String getName() {
-    return "Timeline";
-  }
-
-  public String getDescription() {
-    return "Advanced time machine chart";
-  }
-
+  @SuppressWarnings({"rawtypes", "unchecked"})
   public List getExtensions() {
-    return Arrays.asList(GwtTimelinePage.class);
+    return Arrays.asList(AdvancedTimelineWidget.class);
   }
 
-  @Override
-  public String toString() {
-    return getKey();
-  }
 }

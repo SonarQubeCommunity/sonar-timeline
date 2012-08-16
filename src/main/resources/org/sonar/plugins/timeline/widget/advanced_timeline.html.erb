@@ -60,7 +60,7 @@
         # Add first metric
         js_data += (trend_data[metrics[0].id] ? trend_data[metrics[0].id].to_s : 'undefined') + ", "
     
-      # Add event if it exists    
+        # Add event if it exists    
         s_event = trend_data[:event]
         if s_event
           js_data += "\"" + s_event.name + "\", " + (s_event.description ? "\""+s_event.description+"\"" : "undefined")

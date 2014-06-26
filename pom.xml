@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.codehaus.sonar-plugins</groupId>
     <artifactId>parent</artifactId>
-    <version>13</version>
+    <version>18</version>
     <relativePath>../parent</relativePath>
   </parent>
 
@@ -52,6 +52,12 @@
       <email>fabrice.bellingard@sonarsource.com</email>
       <timezone>+1</timezone>
     </developer>
+    <developer>
+      <id>jean-baptiste.lievremont</id>
+      <name>Jean-Baptiste Lièvremont</name>
+      <email>jean-baptiste.lievremont@sonarsource.com</email>
+      <timezone>+1</timezone>
+    </developer>
   </developers>
 
   <scm>
@@ -77,7 +83,7 @@
       <version>${sonar.version}</version>
       <scope>provided</scope>
     </dependency>
-    
+
     <!-- unit tests -->
     <dependency>
       <groupId>junit</groupId>
@@ -108,5 +114,5 @@
       </plugin>
     </plugins>
   </build>
-  
+
 </project>

@@ -99,11 +99,11 @@
 <script type='text/javascript'>  
   google.load('visualization', '1', {'packages':['annotatedtimeline']});
   google.setOnLoadCallback(function() {
-    var chart_div = $('advanced_timeline_<%= widget.id -%>');
-    chart_div.setStyle("height: <%= widget_properties['height'] -%>px");
-    
+    var chart_div = $j('#advanced_timeline_<%= widget.id -%>');
+    chart_div.css("height", "<%= widget_properties['height'] -%>px");
+
     var data = <%= js_data -%>;
-    var chart = new google.visualization.AnnotatedTimeLine(chart_div);
+    var chart = new google.visualization.AnnotatedTimeLine(chart_div[0]);
     chart.draw(data, {
       allowHtml: true,
       displayAnnotations: true,

@@ -13,9 +13,7 @@
     available_metric_ids << m_id unless available_metric_ids.include?(m_id)
 
     unless trend_data_by_sid[s_id]
-      s_date = trend_item["created_at"]
-      # Only Oracle returns a Time object, so let's parse this string if it's not a Time instance
-      s_date = Time.parse(trend_item["created_at"]) unless s_date.is_a? Time
+      s_date = Time.at(trend_item["created_at"].to_i/1000)
 
       trend_data_by_sid[s_id] = {:date => s_date}
     end

@@ -73,7 +73,7 @@
   </issueManagement>
 
   <properties>
-    <sonar.version>5.1-SNAPSHOT</sonar.version>
+    <sonar.version>5.1-RC1</sonar.version>
     <sonar.pluginName>Timeline</sonar.pluginName>
     <sonar.pluginClass>org.sonar.plugins.timeline.TimelinePlugin</sonar.pluginClass>
   </properties>

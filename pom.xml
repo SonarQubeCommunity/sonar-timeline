@@ -61,9 +61,9 @@
   </developers>
 
   <scm>
-    <connection>scm:git:git@github.com:SonarCommunity/sonar-timeline.git</connection>
-    <developerConnection>scm:git:git@github.com:SonarCommunity/sonar-timeline.git</developerConnection>
-    <url>https://github.com/SonarCommunity/sonar-timeline</url>
+    <connection>scm:git:git@github.com:SonarSource/sonar-timeline.git</connection>
+    <developerConnection>scm:git:git@github.com:SonarSource/sonar-timeline.git</developerConnection>
+    <url>https://github.com/SonarSource/sonar-timeline</url>
     <tag>HEAD</tag>
   </scm>
   <issueManagement>
